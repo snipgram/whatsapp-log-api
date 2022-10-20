@@ -24,7 +24,7 @@ async function register(req, res) {
     password: await bcrypt.hash(password, 10),
   });
   const result = newUser.toObject();
-  result.token = jwt.sign({ name, password }, key, { expiresIn: "2h" });
+  result.token = jwt.sign({ name, password }, key);
 
   return res.send(result);
 }
@@ -46,7 +46,7 @@ async function login(req, res) {
     return res.status(400).send({ message: "Wrong password" });
   }
   const result = user.toObject();
-  result.token = jwt.sign({ name, password }, key, { expiresIn: "2h" });
+  result.token = jwt.sign({ name, password }, key);
 
   return res.send(result);
 }
