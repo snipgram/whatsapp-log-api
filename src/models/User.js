@@ -3,8 +3,8 @@ import mongoose from "mongoose";
 const { Schema, model } = mongoose;
 
 const userSchema = new Schema({
-  name: { type: String, unique: true },
-  password: String,
+  name: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
 });
 
 export default model("user", userSchema);
