@@ -4,7 +4,7 @@ const { Schema, model } = mongoose;
 
 const logSchema = new Schema({
   userId: { type: String, required: true },
-  key: Schema.Types.Mixed,
+  content: Schema.Types.Mixed,
 });
 
 export default model("log", logSchema);

@@ -9,5 +9,6 @@ router.post("/register", UserController.register);
 router.post("/login", UserController.login);
 
 router.post("/create", auth, LogController.create);
+router.get("/show", auth, LogController.show);
 
 export default router;
