@@ -1,4 +1,5 @@
 import Log from "../models/Log.js";
+import jwt from "jsonwebtoken";
 
 async function create(req, res) {
   const token = req.headers["x-access-token"];
@@ -6,8 +7,11 @@ async function create(req, res) {
   if (!req.body) {
     return res.status(400).send({ message: "Body can't be empty" });
   }
+
+  const user = jwt.verify(token, process.env.BCRYPT_KEY);
+
   const result = await Log.create({
-    userId: token,
+    userId: user.iat,
     content: req.body,
   });
   return res.send(result);
@@ -15,8 +19,10 @@ async function create(req, res) {
 
 async function show(req, res) {
   const token = req.headers["x-access-token"];
-  
-  Log.find({userId: token}, function(err, obj) {
+
+  const user = jwt.verify(token, process.env.BCRYPT_KEY);
+
+  Log.find({userId: user.iat}, function(err, obj) {
     return res.send(obj);
   })
 }
