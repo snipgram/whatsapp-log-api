@@ -13,6 +13,7 @@ async function create(req, res) {
   const result = await Log.create({
     userId: user.iat,
     content: req.body,
+    timestamp: Date.now()
   });
   return res.send(result);
 }
