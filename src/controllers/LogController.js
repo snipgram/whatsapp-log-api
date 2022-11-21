@@ -1,5 +1,6 @@
 import Log from "../models/Log.js";
 import jwt from "jsonwebtoken";
+import date from 'date-and-time';
 
 async function create(req, res) {
   const token = req.headers["x-access-token"];
@@ -26,7 +27,8 @@ async function show(req, res) {
   const user = jwt.verify(token, process.env.BCRYPT_KEY);
   
   var start_date_timestamp = (new Date(start_date)).getTime();
-  var end_date_timestamp = (new Date(end_date)).getTime();
+  var add_days = date.addDays(new Date(end_date), 1);
+  var end_date_timestamp = (add_days).getTime();
 
   Log.find({
     userId: user.iat,
