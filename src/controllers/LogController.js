@@ -1,6 +1,7 @@
 import Log from "../models/Log.js";
 import jwt from "jsonwebtoken";
 import date from 'date-and-time';
+import request from "request";
 
 async function create(req, res) {
   const token = req.headers["x-access-token"];
@@ -41,4 +42,84 @@ async function show(req, res) {
   })
 }
 
-export default { create, show };
+async function deleteRecord(id) {
+  await Log.deleteOne( { _id: id } )
+
+  return 1
+}
+
+async function deleteMany(start_date_timestamp, end_date_timestamp) {
+  await Log.deleteMany({ 
+    $gte: start_date_timestamp,
+    $lt: end_date_timestamp
+   })
+
+  return 1
+}
+
+export const showRaw = async(start_date, end_date) => {
+
+  var start_date_timestamp = (new Date(start_date)).getTime();
+  var add_days = date.addDays(new Date(end_date), 1);
+
+  // await deleteMany(start_date_timestamp, add_days)
+
+  var options = {
+    'method': 'GET',
+    'url': 'https://newsweather.angel-ping.my.id/show',
+    'headers': {
+      'x-access-token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiaXRzYnVhaC5jb20iLCJwYXNzd29yZCI6Iml0c2J1YWguY29tIiwiaWF0IjoxNjY2OTMwNzY0fQ.NjoY_qDc-aQDMU5y1UhDgVJPCo7nczJIGyN_SprZ9iU',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      "start_date": start_date,
+      "end_date": end_date
+    })
+  
+  };
+  request(options, async function (error, response) {
+    if (error) throw new Error(error);
+    const body = response.body
+
+    var length = JSON.parse(body).length
+    var error_message = "Length: "+length+" Date: "+start_date+" - "+end_date
+    console.log(error_message)
+
+    for (let i = 0; i < length; i++) {
+      try{
+        var options = {
+          'method': 'POST',
+          'url': 'http://127.0.0.1:3005/chats/formatted-response',
+          'headers': {
+            'angel-key': 'ECOM.c9dc7e39c892544e816',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(JSON.parse(body)[i])
+      
+        };
+        request(options, async function (error, response) {
+          if (error) throw new Error(error);
+    
+          if(JSON.parse(response.body).success == true) {
+            if(Object.keys(JSON.parse(response.body).data).length > 0) {
+              console.log(response.body)
+  
+              const result = await Log.create({
+                userId: "1669771751",
+                content: JSON.parse(response.body).data,
+                timestamp: JSON.parse(response.body).data.key.timestamp
+              });
+            }
+          }
+        });  
+      } catch (err) {
+        console.log(err.message)
+      }
+      
+    }
+
+    console.log("finsih")
+  });
+}
+
+export default { create, show, showRaw };
