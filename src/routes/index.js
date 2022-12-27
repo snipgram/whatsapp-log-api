@@ -20,6 +20,14 @@ router.get("/show",
     auth, 
     LogController.show);
 
+router.get("/destroy", 
+    body('start_date').notEmpty(),
+    body('end_date').notEmpty(),
+    requestValidator, 
+    rangeDateValidator,
+    auth, 
+    LogController.destroy);
+
 router.get("/show-raw", 
     body('start_date').notEmpty(),
     body('end_date').notEmpty(),

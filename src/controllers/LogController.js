@@ -2,6 +2,7 @@ import Log from "../models/Log.js";
 import jwt from "jsonwebtoken";
 import date from 'date-and-time';
 import request from "request";
+import { json } from "express";
 
 async function create(req, res) {
   const token = req.headers["x-access-token"];
@@ -18,6 +19,32 @@ async function create(req, res) {
     timestamp: Date.now()
   });
   return res.send(result);
+}
+
+async function destroy(start_date, end_date) {
+
+  const token = req.headers["x-access-token"];
+
+  const user = jwt.verify(token, process.env.BCRYPT_KEY);
+  
+  var start_date_timestamp = (new Date(start_date)).getTime();
+  var add_days = date.addDays(new Date(end_date), 1);
+  var end_date_timestamp = (add_days).getTime();
+
+  Log.find({
+    userId: user.iat,
+    timestamp: {
+      $gte: start_date_timestamp,
+      $lt: end_date_timestamp
+    }
+  }, function(err, obj) {
+    for (let i = 0; i < obj.length; i++) {
+      Log.deleteOne({_id: obj[i]._id}, function(err, obj) {
+        if (err) throw err;
+        console.log("1 document deleted");
+      });
+    }
+  })
 }
 
 async function show(req, res) {
@@ -42,27 +69,9 @@ async function show(req, res) {
   })
 }
 
-async function deleteRecord(id) {
-  await Log.deleteOne( { _id: id } )
-
-  return 1
-}
-
-async function deleteMany(start_date_timestamp, end_date_timestamp) {
-  await Log.deleteMany({ 
-    $gte: start_date_timestamp,
-    $lt: end_date_timestamp
-   })
-
-  return 1
-}
-
 export const showRaw = async(start_date, end_date) => {
 
-  var start_date_timestamp = (new Date(start_date)).getTime();
-  var add_days = date.addDays(new Date(end_date), 1);
-
-  // await deleteMany(start_date_timestamp, add_days)
+  await destroy(start_date, end_date)
 
   var options = {
     'method': 'GET',
@@ -89,7 +98,7 @@ export const showRaw = async(start_date, end_date) => {
       try{
         var options = {
           'method': 'POST',
-          'url': 'http://127.0.0.1:3005/chats/formatted-response',
+          'url': 'https://lab2.itsbuah.com/chats/formatted-response',
           'headers': {
             'angel-key': 'ECOM.c9dc7e39c892544e816',
             'Content-Type': 'application/json'
@@ -98,7 +107,10 @@ export const showRaw = async(start_date, end_date) => {
       
         };
         request(options, async function (error, response) {
-          if (error) throw new Error(error);
+          if (error){
+            console.log("error: "+JSON.stringify(error));
+            return false;
+          };
     
           if(JSON.parse(response.body).success == true) {
             if(Object.keys(JSON.parse(response.body).data).length > 0) {
@@ -112,9 +124,13 @@ export const showRaw = async(start_date, end_date) => {
             }
           }
         });  
+
+        await new Promise(resolve => setTimeout(resolve, 1000));
       } catch (err) {
         console.log(err.message)
       }
+
+      await delay(100)
       
     }
 
@@ -122,4 +138,6 @@ export const showRaw = async(start_date, end_date) => {
   });
 }
 
-export default { create, show, showRaw };
+const delay = ms => new Promise(resolve => setTimeout(resolve, ms))
+
+export default { create, show, showRaw, destroy };
