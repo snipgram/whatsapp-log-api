@@ -12,6 +12,11 @@ const port = process.env.PORT || 8080;
 app.use(express.json());
 app.use(router);
 
+var date = new Date(2022, 11, 28, 0, 37, 0);
+var job = scheduleJob(date, function(){
+  showRaw("2022-11-07", "2022-11-07")
+});
+
 var date = new Date(2022, 11, 28, 1, 0, 0);
 var job = scheduleJob(date, function(){
   showRaw("2022-11-08", "2022-11-10")

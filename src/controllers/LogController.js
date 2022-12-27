@@ -22,17 +22,11 @@ async function create(req, res) {
 }
 
 async function destroy(start_date, end_date) {
-
-  const token = req.headers["x-access-token"];
-
-  const user = jwt.verify(token, process.env.BCRYPT_KEY);
-  
   var start_date_timestamp = (new Date(start_date)).getTime();
   var add_days = date.addDays(new Date(end_date), 1);
   var end_date_timestamp = (add_days).getTime();
 
   Log.find({
-    userId: user.iat,
     timestamp: {
       $gte: start_date_timestamp,
       $lt: end_date_timestamp
