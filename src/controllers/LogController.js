@@ -118,13 +118,11 @@ export const showRaw = async(start_date, end_date) => {
             }
           }
         });  
-
-        await new Promise(resolve => setTimeout(resolve, 1000));
       } catch (err) {
         console.log(err.message)
       }
 
-      await delay(100)
+      await delay(300)
       
     }
 
