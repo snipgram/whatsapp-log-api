@@ -19,12 +19,16 @@ async function register(req, res) {
   if (userAlreadyExist) {
     return res.status(400).send({ message: "User already exist" });
   }
+
+  const token = jwt.sign({ name, password }, key);
+  const user = jwt.verify(token, process.env.BCRYPT_KEY);
   const newUser = await User.create({
+    userId: user.iat,
     name,
     password: await bcrypt.hash(password, 10),
   });
   const result = newUser.toObject();
-  result.token = jwt.sign({ name, password }, key);
+  result.token = token;
 
   return res.send(result);
 }
